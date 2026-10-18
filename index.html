@@ -476,6 +476,7 @@
   </div>
   <div class="controls-group">
     <label class="checkbox-label"><input type="checkbox" id="gen-courses" checked> Courses</label>
+    <label class="checkbox-label"><input type="checkbox" id="gen-tasks" checked> Tasks</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-quintiles" checked> Quintiles</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-monthly" checked> Monthly</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-weekly" checked> Weekly</label>
@@ -723,13 +724,34 @@ function renderCourses() {
       <div class="sub-code" style="padding-top:4px;">fill the circle as a course moves from up &rarr; now &rarr; done</div>
     </div>
     <div class="page">
-      <div class="header-row"><div><h1 class="serif-header">holding tank.</h1><div class="sub-code">not yet active</div></div><span class="tag-label">parked</span></div>
+      <div class="header-row"><div><h1 class="serif-header">someday / maybe.</h1><div class="sub-code">ideas, not yet committed</div></div><span class="tag-label">parked</span></div>
       <div class="border-box" style="flex:1; display:flex; flex-direction:column;">
         <div class="tank-head" style="background:#fff;"><span>item</span><span>w / l</span><span>status</span></div>
         ${tankRows}
       </div>
-      <div class="sub-code" style="padding-top:4px;">&rarr; C# added to course &nbsp;&nbsp; &check; done &nbsp;&nbsp; &times; dropped</div>
+      <div class="sub-code" style="padding-top:4px;">&rarr; committed (unscheduled, a date, or C#) &nbsp;&nbsp; &times; dropped</div>
     </div>
+  </div>`;
+}
+
+function renderTasks() {
+  const cols = 'grid-template-columns: 1fr 0.5in 0.55in;';
+  const rows = Array.from({length: 26}, () =>
+    `<div class="tank-row" style="${cols}"><span></span><span></span><span></span></div>`).join('');
+  const page = (title, sub) => `
+    <div class="page">
+      <div class="header-row"><div><h1 class="serif-header">${title}</h1><div class="sub-code">${sub}</div></div><span class="tag-label">park when dated</span></div>
+      <div class="border-box" style="flex:1; display:flex; flex-direction:column;">
+        <div class="tank-head" style="${cols} background:#fff;"><span>task</span><span>due</span><span>parked</span></div>
+        ${rows}
+      </div>
+      <div class="sub-code" style="padding-top:4px;">&rarr; day / wk / month / season &nbsp;&nbsp; &check; done &nbsp;&nbsp; &times; dropped</div>
+    </div>`;
+  return `
+  <div class="folio-sheet"><div class="fold-line"></div>
+    <!-- UNSCHEDULED TASKS: everything without a time bucket yet -->
+    ${page('unscheduled.', 'work &bull; committed, no date yet')}
+    ${page('unscheduled.', 'living &bull; committed, no date yet')}
   </div>`;
 }
 
@@ -753,7 +775,7 @@ function renderWeeklyPlan(monDate) {
       <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
         <div class="plan-box">
           <span class="sub-code">review first</span>
-          <div class="check-row"><span>&square; courses</span><span>&square; holding tank</span><span>&square; outlook</span><span>&square; last week</span></div>
+          <div class="check-row"><span>&square; courses</span><span>&square; this month</span><span>&square; unscheduled</span><span>&square; someday / maybe</span><span>&square; outlook</span><span>&square; last week</span></div>
         </div>
         <div class="plan-box" style="flex:1.1;"><span class="sub-code">big rocks</span>${rockRows}</div>
         <div class="plan-box" style="flex:1.4;"><span class="sub-code">deadlines &amp; fixed commitments</span>${rows(6)}</div>
@@ -859,6 +881,9 @@ function buildPlanner() {
   // 0. Courses + holding tank (single loose-leaf sheet)
   if (document.getElementById('gen-courses').checked) {
     htmlBuffer += renderCourses();
+  }
+  if (document.getElementById('gen-tasks').checked) {
+    htmlBuffer += renderTasks();
   }
 
   // 1. Quintiles
