@@ -290,6 +290,10 @@
     position: absolute;
     left: 0; right: 0;
     height: 0;
+    border-top: 0.75pt solid #6b7280;
+  }
+  .ladder-line.half {
+    left: 0.35in;
     border-top: 0.5pt solid #9ca3af;
   }
   .ladder-label {
@@ -465,6 +469,10 @@
   <div class="controls-group">
     <label>Start: <input type="date" id="start-date" value="2026-10-19"></label>
     <label>End: <input type="date" id="end-date" value="2026-11-01"></label>
+  </div>
+  <div class="controls-group">
+    <label>Work day: <select id="work-start"><option value="5">5a</option><option value="6">6a</option><option value="7" selected>7a</option><option value="8">8a</option><option value="9">9a</option><option value="10">10a</option><option value="11">11a</option><option value="12">12p</option><option value="13">1p</option></select></label>
+    <label>Personal day: <select id="personal-start"><option value="5">5a</option><option value="6">6a</option><option value="7">7a</option><option value="8">8a</option><option value="9">9a</option><option value="10">10a</option><option value="11">11a</option><option value="12">12p</option><option value="13" selected>1p</option></select></label>
   </div>
   <div class="controls-group">
     <label class="checkbox-label"><input type="checkbox" id="gen-courses" checked> Courses</label>
@@ -771,14 +779,27 @@ function renderWeeklyPlan(monDate) {
   </div>`;
 }
 
-function renderDayLadder(hours) {
-  const step = 7.4;  // mm per hour = 2 grid squares, so one grid line sits at each half hour
-  const lead = 3.7;  // one grid square above the first hour so its line (and label) sits inside the box
-  const marks = [...hours, "12a"].map((h, i) => {
-    const y = (lead + i * step).toFixed(1);
-    return `<div class="ladder-line" style="top:${y}mm;"></div><div class="ladder-label" style="top:${y}mm;">${h}</div>`;
-  }).join('');
-  const height = (lead * 2 + hours.length * step).toFixed(1);
+const LADDER_HOURS = 11; // hours that fit on a half-letter page at 4 grid squares per hour
+
+function hourLabel(h) {
+  const hh = h % 24;
+  if (hh === 0) return '12a';
+  if (hh < 12) return `${hh}a`;
+  if (hh === 12) return '12p';
+  return `${hh - 12}p`;
+}
+
+function renderDayLadder(startHour) {
+  const sq = 3.7;            // one grid square, mm
+  const step = sq * 4;       // one hour = 4 squares; bold half-hour line at 2 squares
+  const lead = sq;           // one square above the first hour so its label sits inside the box
+  let marks = '';
+  for (let i = 0; i <= LADDER_HOURS; i++) {
+    const y = lead + i * step;
+    marks += `<div class="ladder-line" style="top:${y.toFixed(1)}mm;"></div><div class="ladder-label" style="top:${y.toFixed(1)}mm;">${hourLabel(startHour + i)}</div>`;
+    if (i < LADDER_HOURS) marks += `<div class="ladder-line half" style="top:${(y + step / 2).toFixed(1)}mm;"></div>`;
+  }
+  const height = (lead * 2 + LADDER_HOURS * step).toFixed(1);
   return `<div class="border-box grid-bg ladder" style="height:calc(${height}mm + 1pt);"><div class="ladder-gutter"></div>${marks}</div>`;
 }
 
@@ -794,8 +815,8 @@ function renderDailySpread(dateObj) {
     : `<span style="display:inline-block; width:1.7em; text-align:center; letter-spacing:0;">${c[0]}</span>`
   ).join('');
 
-  const hoursLadder = ["6a","7a","8a","9a","10a","11a","12p","1p","2p","3p","4p","5p","6p","7p","8p","9p","10p","11p"];
-  const ladder = renderDayLadder(hoursLadder);
+  const workStart = parseInt(document.getElementById('work-start').value, 10);
+  const personalStart = parseInt(document.getElementById('personal-start').value, 10);
 
   return `
   <div class="folio-sheet"><div class="fold-line"></div>
@@ -805,9 +826,8 @@ function renderDailySpread(dateObj) {
         <div><h1 class="serif-header">${dayName} ${dayNum}</h1><div class="sub-code">${monthName} ${year} &bull; work daily</div></div>
         <div class="sub-code" style="display:flex; align-items:center;">${weekStrip}</div>
       </div>
-      ${ladder}
-      <div class="border-box grid-bg" style="flex:1; margin-top:6px;"></div>
-      <div class="shutdown-row"><span class="tag-label">&square; shutdown complete</span></div>
+      ${renderDayLadder(workStart)}
+      <div class="shutdown-row" style="margin-top:auto;"><span class="tag-label">&square; shutdown complete</span></div>
     </div>
     <!-- DAILY PERSONAL -->
     <div class="page">
@@ -815,8 +835,7 @@ function renderDailySpread(dateObj) {
         <div><h1 class="serif-header">${dayName} ${dayNum}</h1><div class="sub-code">${monthName} ${year} &bull; personal daily</div></div>
         <div class="sub-code" style="display:flex; align-items:center;">${weekStrip}</div>
       </div>
-      ${ladder}
-      <div class="border-box grid-bg" style="flex:1; margin-top:6px;"></div>
+      ${renderDayLadder(personalStart)}
     </div>
   </div>`;
 }
