@@ -94,8 +94,10 @@
     display: flex;
     page-break-after: always;
     position: relative;
+    overflow: hidden;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
+  .folio-sheet:last-child { page-break-after: auto; }
   @media print {
     body { background: #fff; }
     #control-panel { display: none !important; }
@@ -368,7 +370,7 @@ function renderQuintiles(targetYear) {
       </div>
     </div>
   </div>
-  <!-- 2028+ HORIZON -->
+  <!-- NEXT-YEAR+ HORIZON -->
   <div class="folio-sheet"><div class="fold-line"></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">${targetYear + 1}+.</h1><div class="sub-code">long-range horizon</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">${targetYear + 1}+.</h1><div class="sub-code">forward park</div></div><span class="tag-label">${targetYear + 1}</span></div>
@@ -429,9 +431,9 @@ function renderMonthlyCal(year, monthIndex) {
         ${Array.from({length: totalDays}, (_, idx) => {
           const dayD = new Date(year, monthIndex, idx + 1);
           const isWeekend = dayD.getDay() === 0 || dayD.getDay() === 6;
-          return `<div style="display:flex; border-bottom:0.5pt solid #e5e7eb; font-family:'IBM Plex Mono'; font-size:5.5pt; height: calc(100% / ${totalDays}); align-items:center; ${isWeekend ? 'background:rgba(0,0,0,0.03); font-weight:600;' : ''}">
-            <span style="width:18px; text-align:right; margin-right:4px;">\${idx + 1}</span>
-            <span style="width:16px; color:#6b7280;">\${DAY_CODES[dayD.getDay()]}</span>
+          return `<div style="display:flex; border-bottom:0.5pt solid #e5e7eb; font-family:'IBM Plex Mono', monospace; font-size:5.5pt; height: calc(100% / ${totalDays}); align-items:center; ${isWeekend ? 'background:rgba(0,0,0,0.03); font-weight:600;' : ''}">
+            <span style="width:18px; text-align:right; margin-right:4px;">${idx + 1}</span>
+            <span style="width:16px; color:#6b7280;">${DAY_CODES[dayD.getDay()]}</span>
           </div>`;
         }).join('')}
       </div>
@@ -465,7 +467,7 @@ function renderWeeklySpread(monDate) {
       <div class="weekly-columns grid-bg" style="flex:1;">
         ${days.slice(0, 5).map(d => `
           <div class="day-col">
-            <div class="day-head"><span class="d-num">\${d.getDate()}</span> <span class="d-name">\${DAY_CODES[d.getDay()]}</span></div>
+            <div class="day-head"><span class="d-num">${d.getDate()}</span> <span class="d-name">${DAY_CODES[d.getDay()]}</span></div>
             <div class="time-ladder">
               <span class="hour-mark" style="top: 8%;">7a</span>
               <span class="hour-mark" style="top: 30%;">10a</span>
@@ -494,7 +496,7 @@ function renderWeeklySpread(monDate) {
       </div>
       <div class="border-box grid-bg" style="flex:1;"></div>
       <div class="repeatables-floor grid-bg">
-        <div class="repeatables-header"><span>HABITS & ROUTINES</span><span>M T W T F S S</span></div>
+        <div class="repeatables-header"><span>HABITS &amp; ROUTINES</span><span>M T W T F S S</span></div>
         <div class="repeatables-row"><span>&square;</span><span>&cir; &cir; &cir; &cir; &cir; &cir; &cir;</span></div>
         <div class="repeatables-row"><span>&square;</span><span>&cir; &cir; &cir; &cir; &cir; &cir; &cir;</span></div>
       </div>
@@ -508,6 +510,12 @@ function renderDailySpread(dateObj) {
   const monthName = MONTH_NAMES[dateObj.getMonth()];
   const year = dateObj.getFullYear();
 
+  // Week strip with the current day circled (Monday-start)
+  const weekStrip = ["MO","TU","WE","TH","FR","SA","SU"].map(c => c === dayName
+    ? `<span style="display:inline-block; width:1.7em; height:1.7em; line-height:1.6em; text-align:center; letter-spacing:0; border:0.75pt solid #111827; border-radius:50%; color:#111827; font-weight:600;">${c[0]}</span>`
+    : `<span style="display:inline-block; width:1.7em; text-align:center; letter-spacing:0;">${c[0]}</span>`
+  ).join('');
+
   const hoursLadder = ["6a","7a","8a","9a","10a","11a","12p","1p","2p","3p","4p","5p","6p","7p","8p","9p","10p","11p"];
 
   return `
@@ -516,11 +524,11 @@ function renderDailySpread(dateObj) {
     <div class="page">
       <div class="header-row">
         <div><h1 class="serif-header">${dayName} ${dayNum}</h1><div class="sub-code">${monthName} ${year} &bull; work daily</div></div>
-        <div class="sub-code" style="letter-spacing:0.25em;">M T W T F S S</div>
+        <div class="sub-code" style="display:flex; align-items:center;">${weekStrip}</div>
       </div>
       <div class="border-box grid-bg" style="flex:1; display:flex;">
-        <div style="width:0.35in; border-right:0.5pt solid #4b5563; background:#fff; display:flex; flex-direction:column; justify-content:space-between; padding:4px 0; text-align:center; font-family:'IBM Plex Mono'; font-size:5pt; color:#4b5563;">
-          ${hoursLadder.map(h => `<div>\${h}</div>`).join('')}
+        <div style="width:0.35in; border-right:0.5pt solid #4b5563; background:#fff; display:flex; flex-direction:column; justify-content:space-between; padding:4px 0; text-align:center; font-family:'IBM Plex Mono', monospace; font-size:5pt; color:#4b5563;">
+          ${hoursLadder.map(h => `<div>${h}</div>`).join('')}
         </div>
         <div style="flex:1;"></div>
       </div>
@@ -529,11 +537,11 @@ function renderDailySpread(dateObj) {
     <div class="page">
       <div class="header-row">
         <div><h1 class="serif-header">${dayName} ${dayNum}</h1><div class="sub-code">${monthName} ${year} &bull; personal daily</div></div>
-        <div class="sub-code" style="letter-spacing:0.25em;">M T W T F S S</div>
+        <div class="sub-code" style="display:flex; align-items:center;">${weekStrip}</div>
       </div>
       <div class="border-box grid-bg" style="flex:1; display:flex;">
-        <div style="width:0.35in; border-right:0.5pt solid #4b5563; background:#fff; display:flex; flex-direction:column; justify-content:space-between; padding:4px 0; text-align:center; font-family:'IBM Plex Mono'; font-size:5pt; color:#4b5563;">
-          ${hoursLadder.map(h => `<div>\${h}</div>`).join('')}
+        <div style="width:0.35in; border-right:0.5pt solid #4b5563; background:#fff; display:flex; flex-direction:column; justify-content:space-between; padding:4px 0; text-align:center; font-family:'IBM Plex Mono', monospace; font-size:5pt; color:#4b5563;">
+          ${hoursLadder.map(h => `<div>${h}</div>`).join('')}
         </div>
         <div style="flex:1;"></div>
       </div>
