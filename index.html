@@ -294,9 +294,11 @@
   }
   .ladder-label {
     position: absolute;
-    left: 0;
-    width: 0.35in;
-    text-align: center;
+    left: 0.175in;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 0 2px;
+    white-space: nowrap;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 5pt;
     color: #4b5563;
@@ -415,6 +417,17 @@
     padding: 0 6px;
   }
   .proj-lines .rule-row { align-items: flex-start; padding-top: 2px; }
+  .course-status {
+    width: 0.45in;
+    border-left: 0.5pt solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding-left: 5px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 5pt;
+    color: #6b7280;
+  }
 
   /* Season projects: holding tank */
   .tank-head, .tank-row {
@@ -454,6 +467,7 @@
     <label>End: <input type="date" id="end-date" value="2026-11-01"></label>
   </div>
   <div class="controls-group">
+    <label class="checkbox-label"><input type="checkbox" id="gen-courses" checked> Courses</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-quintiles" checked> Quintiles</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-monthly" checked> Monthly</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-weekly" checked> Weekly</label>
@@ -501,7 +515,6 @@ function renderQuintiles(targetYear) {
       </div>
     </div>
   </div>
-  ${renderSeasonProjects('winter', targetYear)}
   <!-- QUINTILE 2: SPRING -->
   <div class="folio-sheet"><div class="fold-line"></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">spring.</h1><div class="sub-code">quintile ii &bull; apr / may ${targetYear}</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
@@ -512,7 +525,6 @@ function renderQuintiles(targetYear) {
       </div>
     </div>
   </div>
-  ${renderSeasonProjects('spring', targetYear)}
   <!-- QUINTILE 3: SUMMER -->
   <div class="folio-sheet"><div class="fold-line"></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">summer.</h1><div class="sub-code">quintile iii &bull; jun / jul / aug ${targetYear}</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
@@ -524,7 +536,6 @@ function renderQuintiles(targetYear) {
       </div>
     </div>
   </div>
-  ${renderSeasonProjects('summer', targetYear)}
   <!-- QUINTILE 4: FALL -->
   <div class="folio-sheet"><div class="fold-line"></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">fall.</h1><div class="sub-code">quintile iv &bull; sep / oct ${targetYear}</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
@@ -535,7 +546,6 @@ function renderQuintiles(targetYear) {
       </div>
     </div>
   </div>
-  ${renderSeasonProjects('fall', targetYear)}
   <!-- QUINTILE 5: HOLIDAY SEASON -->
   <div class="folio-sheet"><div class="fold-line"></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">holiday season.</h1><div class="sub-code">quintile v &bull; nov / dec ${targetYear}</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
@@ -546,7 +556,6 @@ function renderQuintiles(targetYear) {
       </div>
     </div>
   </div>
-  ${renderSeasonProjects('holiday season', targetYear)}
   <!-- NEXT-YEAR+ HORIZON -->
   <div class="folio-sheet"><div class="fold-line"></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">${targetYear + 1}+.</h1><div class="sub-code">long-range horizon</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
@@ -681,37 +690,37 @@ function renderWeeklySpread(monDate) {
   </div>`;
 }
 
-function renderSeasonProjects(season, year) {
+function renderCourses() {
   const slot = (id) => `
         <div class="proj-slot">
-          <div class="proj-id"><span>${id}</span><span class="proj-done">&square;</span></div>
+          <div class="proj-id"><span>${id}</span></div>
           <div class="proj-lines">
-            <div class="rule-row"><span class="mini">project</span></div>
-            <div class="rule-row"><span class="mini">done when</span></div>
-            <div class="rule-row"><span class="mini">next / due</span></div>
+            <div class="rule-row"><span class="mini">course</span></div>
+            <div class="rule-row"><span class="mini">term / dates</span></div>
+            <div class="rule-row"><span class="mini">next milestone / due</span></div>
           </div>
+          <div class="course-status"><span>&cir; up</span><span>&cir; now</span><span>&cir; done</span></div>
         </div>`;
   const tankRows = Array.from({length: 24}, () =>
     `<div class="tank-row"><span></span><span class="tank-wl">W &nbsp; L</span><span></span></div>`).join('');
 
   return `
   <div class="folio-sheet"><div class="fold-line"></div>
+    <!-- COURSES: one loose-leaf sheet you move forward -->
     <div class="page">
-      <div class="header-row"><div><h1 class="serif-header">projects.</h1><div class="sub-code">${season} ${year} &bull; active</div></div><span class="tag-label">4 work / 2 living</span></div>
+      <div class="header-row"><div><h1 class="serif-header">courses.</h1><div class="sub-code">current &amp; upcoming</div></div><span class="tag-label">move forward</span></div>
       <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
-        <span class="sub-code">work</span>
-        ${['P1','P2','P3','P4'].map(slot).join('')}
-        <span class="sub-code" style="margin-top:4px;">living</span>
-        ${['L1','L2'].map(slot).join('')}
+        ${['C1','C2','C3','C4','C5','C6','C7','C8'].map(slot).join('')}
       </div>
+      <div class="sub-code" style="padding-top:4px;">fill the circle as a course moves from up &rarr; now &rarr; done</div>
     </div>
     <div class="page">
-      <div class="header-row"><div><h1 class="serif-header">holding tank.</h1><div class="sub-code">${season} ${year} &bull; not yet active</div></div><span class="tag-label">parked</span></div>
+      <div class="header-row"><div><h1 class="serif-header">holding tank.</h1><div class="sub-code">not yet active</div></div><span class="tag-label">parked</span></div>
       <div class="border-box" style="flex:1; display:flex; flex-direction:column;">
         <div class="tank-head" style="background:#fff;"><span>item</span><span>w / l</span><span>status</span></div>
         ${tankRows}
       </div>
-      <div class="sub-code" style="padding-top:4px;">&rarr; P# promoted &nbsp;&nbsp; &check; done &nbsp;&nbsp; &times; dropped</div>
+      <div class="sub-code" style="padding-top:4px;">&rarr; C# added to course &nbsp;&nbsp; &check; done &nbsp;&nbsp; &times; dropped</div>
     </div>
   </div>`;
 }
@@ -726,7 +735,7 @@ function renderWeeklyPlan(monDate) {
   const last = days[6];
   const range = `${MONTH_NAMES[monDate.getMonth()].slice(0, 3)} ${monDate.getDate()} &ndash; ${MONTH_NAMES[last.getMonth()].slice(0, 3)} ${last.getDate()}`;
   const rows = (n) => Array.from({length: n}, () => `<div class="rule-row"></div>`).join('');
-  const rockRows = Array.from({length: 3}, () => `<div class="rule-row"><span class="id-slot">P / L</span></div>`).join('');
+  const rockRows = Array.from({length: 3}, () => `<div class="rule-row"><span class="id-slot">C#</span></div>`).join('');
 
   return `
   <div class="folio-sheet"><div class="fold-line"></div>
@@ -736,7 +745,7 @@ function renderWeeklyPlan(monDate) {
       <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
         <div class="plan-box">
           <span class="sub-code">review first</span>
-          <div class="check-row"><span>&square; season projects</span><span>&square; holding tank</span><span>&square; outlook</span><span>&square; last week</span></div>
+          <div class="check-row"><span>&square; courses</span><span>&square; holding tank</span><span>&square; outlook</span><span>&square; last week</span></div>
         </div>
         <div class="plan-box" style="flex:1.1;"><span class="sub-code">big rocks</span>${rockRows}</div>
         <div class="plan-box" style="flex:1.4;"><span class="sub-code">deadlines &amp; fixed commitments</span>${rows(6)}</div>
@@ -763,12 +772,14 @@ function renderWeeklyPlan(monDate) {
 }
 
 function renderDayLadder(hours) {
-  const step = 7.4; // mm per hour = 2 grid squares, so one grid line sits at each half hour
-  const marks = hours.map((h, i) => {
-    const line = i > 0 ? `<div class="ladder-line" style="top:${(i * step).toFixed(1)}mm;"></div>` : '';
-    return `${line}<div class="ladder-label" style="top:${(i * step + 0.7).toFixed(1)}mm;">${h}</div>`;
+  const step = 7.4;  // mm per hour = 2 grid squares, so one grid line sits at each half hour
+  const lead = 3.7;  // one grid square above the first hour so its line (and label) sits inside the box
+  const marks = [...hours, "12a"].map((h, i) => {
+    const y = (lead + i * step).toFixed(1);
+    return `<div class="ladder-line" style="top:${y}mm;"></div><div class="ladder-label" style="top:${y}mm;">${h}</div>`;
   }).join('');
-  return `<div class="border-box grid-bg ladder" style="height:calc(${(hours.length * step).toFixed(1)}mm + 1pt);"><div class="ladder-gutter"></div>${marks}</div>`;
+  const height = (lead * 2 + hours.length * step).toFixed(1);
+  return `<div class="border-box grid-bg ladder" style="height:calc(${height}mm + 1pt);"><div class="ladder-gutter"></div>${marks}</div>`;
 }
 
 function renderDailySpread(dateObj) {
@@ -826,7 +837,12 @@ function buildPlanner() {
 
   let htmlBuffer = '';
 
-  // 1. Quintiles (each season followed by its projects / holding tank sheet)
+  // 0. Courses + holding tank (single loose-leaf sheet)
+  if (document.getElementById('gen-courses').checked) {
+    htmlBuffer += renderCourses();
+  }
+
+  // 1. Quintiles
   if (document.getElementById('gen-quintiles').checked) {
     htmlBuffer += renderQuintiles(startDate.getFullYear());
   }
