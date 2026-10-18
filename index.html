@@ -273,6 +273,177 @@
     font-size: 9pt;
   }
   .cal-table td.dim { color: #d1d5db; }
+
+  /* Daily time ladder: each hour = 2 grid squares (7.4mm), half-hour grid line between */
+  .ladder {
+    position: relative;
+    flex: none;
+  }
+  .ladder-gutter {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 0.35in;
+    background: #fff;
+    border-right: 0.5pt solid #4b5563;
+  }
+  .ladder-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 0;
+    border-top: 0.5pt solid #9ca3af;
+  }
+  .ladder-label {
+    position: absolute;
+    left: 0;
+    width: 0.35in;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 5pt;
+    color: #4b5563;
+    line-height: 1;
+  }
+  .shutdown-row {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
+  }
+
+  /* Shared ruled boxes */
+  .plan-box {
+    border: 0.5pt solid #4b5563;
+    padding: 4px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .rule-row {
+    flex: 1;
+    min-height: 5mm;
+    border-bottom: 0.5pt dashed #d1d5db;
+    display: flex;
+    align-items: flex-end;
+  }
+  .rule-row:last-child { border-bottom: none; }
+  .id-slot {
+    align-self: stretch;
+    width: 0.32in;
+    margin-right: 6px;
+    border-right: 0.5pt solid #e5e7eb;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 1px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 5pt;
+    color: #9ca3af;
+  }
+  .mini {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 4.5pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    padding-bottom: 1px;
+  }
+  .check-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    padding-top: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 6pt;
+    color: #374151;
+  }
+
+  /* Weekly plan: day-by-day */
+  .plan-day {
+    flex: 1;
+    display: flex;
+    border-bottom: 0.5pt solid #e5e7eb;
+  }
+  .plan-day:last-child { border-bottom: none; }
+  .plan-day.weekend { flex: 0.7; }
+  .plan-day-label {
+    width: 0.4in;
+    border-right: 0.5pt solid #4b5563;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .plan-day-label .d-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11pt;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .plan-day-label .d-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 5.5pt;
+    letter-spacing: 0.1em;
+  }
+
+  /* Season projects: active slots */
+  .proj-slot {
+    flex: 1;
+    display: flex;
+    border: 0.5pt solid #4b5563;
+  }
+  .proj-id {
+    width: 0.4in;
+    border-right: 0.5pt solid #4b5563;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13pt;
+    font-weight: 600;
+  }
+  .proj-done {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 7pt;
+    font-weight: 400;
+    color: #6b7280;
+  }
+  .proj-lines {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 6px;
+  }
+  .proj-lines .rule-row { align-items: flex-start; padding-top: 2px; }
+
+  /* Season projects: holding tank */
+  .tank-head, .tank-row {
+    display: grid;
+    grid-template-columns: 1fr 0.45in 0.6in;
+  }
+  .tank-head {
+    border-bottom: 0.5pt solid #4b5563;
+    padding: 3px 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 5pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #4b5563;
+  }
+  .tank-head span { padding-left: 4px; }
+  .tank-row {
+    flex: 1;
+    border-bottom: 0.5pt dashed #d1d5db;
+  }
+  .tank-row span + span, .tank-head span + span { border-left: 0.5pt solid #e5e7eb; }
+  .tank-wl {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 5pt;
+    color: #9ca3af;
+  }
 </style>
 </head>
 <body>
@@ -286,6 +457,7 @@
     <label class="checkbox-label"><input type="checkbox" id="gen-quintiles" checked> Quintiles</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-monthly" checked> Monthly</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-weekly" checked> Weekly</label>
+    <label class="checkbox-label"><input type="checkbox" id="gen-plan" checked> Week Plan</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-daily" checked> Daily</label>
   </div>
   <div class="controls-group">
@@ -329,6 +501,7 @@ function renderQuintiles(targetYear) {
       </div>
     </div>
   </div>
+  ${renderSeasonProjects('winter', targetYear)}
   <!-- QUINTILE 2: SPRING -->
   <div class="folio-sheet"><div class="fold-line"></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">spring.</h1><div class="sub-code">quintile ii &bull; apr / may ${targetYear}</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
@@ -339,6 +512,7 @@ function renderQuintiles(targetYear) {
       </div>
     </div>
   </div>
+  ${renderSeasonProjects('spring', targetYear)}
   <!-- QUINTILE 3: SUMMER -->
   <div class="folio-sheet"><div class="fold-line"></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">summer.</h1><div class="sub-code">quintile iii &bull; jun / jul / aug ${targetYear}</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
@@ -350,6 +524,7 @@ function renderQuintiles(targetYear) {
       </div>
     </div>
   </div>
+  ${renderSeasonProjects('summer', targetYear)}
   <!-- QUINTILE 4: FALL -->
   <div class="folio-sheet"><div class="fold-line"></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">fall.</h1><div class="sub-code">quintile iv &bull; sep / oct ${targetYear}</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
@@ -360,6 +535,7 @@ function renderQuintiles(targetYear) {
       </div>
     </div>
   </div>
+  ${renderSeasonProjects('fall', targetYear)}
   <!-- QUINTILE 5: HOLIDAY SEASON -->
   <div class="folio-sheet"><div class="fold-line"></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">holiday season.</h1><div class="sub-code">quintile v &bull; nov / dec ${targetYear}</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
@@ -370,6 +546,7 @@ function renderQuintiles(targetYear) {
       </div>
     </div>
   </div>
+  ${renderSeasonProjects('holiday season', targetYear)}
   <!-- NEXT-YEAR+ HORIZON -->
   <div class="folio-sheet"><div class="fold-line"></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">${targetYear + 1}+.</h1><div class="sub-code">long-range horizon</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
@@ -504,6 +681,96 @@ function renderWeeklySpread(monDate) {
   </div>`;
 }
 
+function renderSeasonProjects(season, year) {
+  const slot = (id) => `
+        <div class="proj-slot">
+          <div class="proj-id"><span>${id}</span><span class="proj-done">&square;</span></div>
+          <div class="proj-lines">
+            <div class="rule-row"><span class="mini">project</span></div>
+            <div class="rule-row"><span class="mini">done when</span></div>
+            <div class="rule-row"><span class="mini">next / due</span></div>
+          </div>
+        </div>`;
+  const tankRows = Array.from({length: 24}, () =>
+    `<div class="tank-row"><span></span><span class="tank-wl">W &nbsp; L</span><span></span></div>`).join('');
+
+  return `
+  <div class="folio-sheet"><div class="fold-line"></div>
+    <div class="page">
+      <div class="header-row"><div><h1 class="serif-header">projects.</h1><div class="sub-code">${season} ${year} &bull; active</div></div><span class="tag-label">4 work / 2 living</span></div>
+      <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
+        <span class="sub-code">work</span>
+        ${['P1','P2','P3','P4'].map(slot).join('')}
+        <span class="sub-code" style="margin-top:4px;">living</span>
+        ${['L1','L2'].map(slot).join('')}
+      </div>
+    </div>
+    <div class="page">
+      <div class="header-row"><div><h1 class="serif-header">holding tank.</h1><div class="sub-code">${season} ${year} &bull; not yet active</div></div><span class="tag-label">parked</span></div>
+      <div class="border-box" style="flex:1; display:flex; flex-direction:column;">
+        <div class="tank-head" style="background:#fff;"><span>item</span><span>w / l</span><span>status</span></div>
+        ${tankRows}
+      </div>
+      <div class="sub-code" style="padding-top:4px;">&rarr; P# promoted &nbsp;&nbsp; &check; done &nbsp;&nbsp; &times; dropped</div>
+    </div>
+  </div>`;
+}
+
+function renderWeeklyPlan(monDate) {
+  const weekNum = getWeekNumber(monDate);
+  const days = Array.from({length: 7}, (_, i) => {
+    const d = new Date(monDate);
+    d.setDate(monDate.getDate() + i);
+    return d;
+  });
+  const last = days[6];
+  const range = `${MONTH_NAMES[monDate.getMonth()].slice(0, 3)} ${monDate.getDate()} &ndash; ${MONTH_NAMES[last.getMonth()].slice(0, 3)} ${last.getDate()}`;
+  const rows = (n) => Array.from({length: n}, () => `<div class="rule-row"></div>`).join('');
+  const rockRows = Array.from({length: 3}, () => `<div class="rule-row"><span class="id-slot">P / L</span></div>`).join('');
+
+  return `
+  <div class="folio-sheet"><div class="fold-line"></div>
+    <!-- WEEKLY PLAN: PRIORITIES -->
+    <div class="page">
+      <div class="header-row"><div><h1 class="serif-header">plan.</h1><div class="sub-code">wk ${weekNum} &bull; ${range}</div></div><span class="tag-label">weekly plan</span></div>
+      <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+        <div class="plan-box">
+          <span class="sub-code">review first</span>
+          <div class="check-row"><span>&square; season projects</span><span>&square; holding tank</span><span>&square; outlook</span><span>&square; last week</span></div>
+        </div>
+        <div class="plan-box" style="flex:1.1;"><span class="sub-code">big rocks</span>${rockRows}</div>
+        <div class="plan-box" style="flex:1.4;"><span class="sub-code">deadlines &amp; fixed commitments</span>${rows(6)}</div>
+        <div class="plan-box" style="flex:1;"><span class="sub-code">protect / say no to</span>${rows(3)}</div>
+        <div class="plan-box">
+          <div class="check-row" style="justify-content:space-between; padding-top:0;"><span>deep work target ____ hrs</span><span>actual ____ hrs</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- WEEKLY PLAN: DAY BY DAY -->
+    <div class="page">
+      <div class="header-row"><div><h1 class="serif-header">plan.</h1><div class="sub-code">day by day</div></div><span class="tag-label">shape of the week</span></div>
+      <div class="border-box" style="flex:1; display:flex; flex-direction:column;">
+        ${days.map(d => {
+          const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+          return `<div class="plan-day${isWeekend ? ' weekend' : ''}">
+            <div class="plan-day-label"><span class="d-num">${d.getDate()}</span><span class="d-name">${DAY_CODES[d.getDay()]}</span></div>
+            <div class="grid-bg" style="flex:1;"></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderDayLadder(hours) {
+  const step = 7.4; // mm per hour = 2 grid squares, so one grid line sits at each half hour
+  const marks = hours.map((h, i) => {
+    const line = i > 0 ? `<div class="ladder-line" style="top:${(i * step).toFixed(1)}mm;"></div>` : '';
+    return `${line}<div class="ladder-label" style="top:${(i * step + 0.7).toFixed(1)}mm;">${h}</div>`;
+  }).join('');
+  return `<div class="border-box grid-bg ladder" style="height:calc(${(hours.length * step).toFixed(1)}mm + 1pt);"><div class="ladder-gutter"></div>${marks}</div>`;
+}
+
 function renderDailySpread(dateObj) {
   const dayNum = dateObj.getDate();
   const dayName = DAY_CODES[dateObj.getDay()];
@@ -517,6 +784,7 @@ function renderDailySpread(dateObj) {
   ).join('');
 
   const hoursLadder = ["6a","7a","8a","9a","10a","11a","12p","1p","2p","3p","4p","5p","6p","7p","8p","9p","10p","11p"];
+  const ladder = renderDayLadder(hoursLadder);
 
   return `
   <div class="folio-sheet"><div class="fold-line"></div>
@@ -526,12 +794,9 @@ function renderDailySpread(dateObj) {
         <div><h1 class="serif-header">${dayName} ${dayNum}</h1><div class="sub-code">${monthName} ${year} &bull; work daily</div></div>
         <div class="sub-code" style="display:flex; align-items:center;">${weekStrip}</div>
       </div>
-      <div class="border-box grid-bg" style="flex:1; display:flex;">
-        <div style="width:0.35in; border-right:0.5pt solid #4b5563; background:#fff; display:flex; flex-direction:column; justify-content:space-between; padding:4px 0; text-align:center; font-family:'IBM Plex Mono', monospace; font-size:5pt; color:#4b5563;">
-          ${hoursLadder.map(h => `<div>${h}</div>`).join('')}
-        </div>
-        <div style="flex:1;"></div>
-      </div>
+      ${ladder}
+      <div class="border-box grid-bg" style="flex:1; margin-top:6px;"></div>
+      <div class="shutdown-row"><span class="tag-label">&square; shutdown complete</span></div>
     </div>
     <!-- DAILY PERSONAL -->
     <div class="page">
@@ -539,12 +804,8 @@ function renderDailySpread(dateObj) {
         <div><h1 class="serif-header">${dayName} ${dayNum}</h1><div class="sub-code">${monthName} ${year} &bull; personal daily</div></div>
         <div class="sub-code" style="display:flex; align-items:center;">${weekStrip}</div>
       </div>
-      <div class="border-box grid-bg" style="flex:1; display:flex;">
-        <div style="width:0.35in; border-right:0.5pt solid #4b5563; background:#fff; display:flex; flex-direction:column; justify-content:space-between; padding:4px 0; text-align:center; font-family:'IBM Plex Mono', monospace; font-size:5pt; color:#4b5563;">
-          ${hoursLadder.map(h => `<div>${h}</div>`).join('')}
-        </div>
-        <div style="flex:1;"></div>
-      </div>
+      ${ladder}
+      <div class="border-box grid-bg" style="flex:1; margin-top:6px;"></div>
     </div>
   </div>`;
 }
@@ -559,9 +820,13 @@ function buildPlanner() {
   const mount = document.getElementById('planner-mount');
   mount.innerHTML = '';
 
+  const wantWeekly = document.getElementById('gen-weekly').checked;
+  const wantPlan = document.getElementById('gen-plan').checked;
+  const wantDaily = document.getElementById('gen-daily').checked;
+
   let htmlBuffer = '';
 
-  // 1. Quintiles
+  // 1. Quintiles (each season followed by its projects / holding tank sheet)
   if (document.getElementById('gen-quintiles').checked) {
     htmlBuffer += renderQuintiles(startDate.getFullYear());
   }
@@ -576,25 +841,23 @@ function buildPlanner() {
     }
   }
 
-  // 3. Weeks
-  if (document.getElementById('gen-weekly').checked) {
+  // 3. Week by week: weekly spread -> weekly plan -> that week's dailies
+  if (wantWeekly || wantPlan || wantDaily) {
     let curMon = new Date(startDate);
     const day = curMon.getDay();
-    const diff = curMon.getDate() - day + (day === 0 ? -6 : 1);
-    curMon.setDate(diff);
+    curMon.setDate(curMon.getDate() - day + (day === 0 ? -6 : 1));
 
     while (curMon <= endDate) {
-      htmlBuffer += renderWeeklySpread(curMon);
+      if (wantWeekly) htmlBuffer += renderWeeklySpread(new Date(curMon));
+      if (wantPlan) htmlBuffer += renderWeeklyPlan(new Date(curMon));
+      if (wantDaily) {
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(curMon);
+          d.setDate(curMon.getDate() + i);
+          if (d >= startDate && d <= endDate) htmlBuffer += renderDailySpread(d);
+        }
+      }
       curMon.setDate(curMon.getDate() + 7);
-    }
-  }
-
-  // 4. Dailies
-  if (document.getElementById('gen-daily').checked) {
-    let curDay = new Date(startDate);
-    while (curDay <= endDate) {
-      htmlBuffer += renderDailySpread(curDay);
-      curDay.setDate(curDay.getDate() + 1);
     }
   }
 
