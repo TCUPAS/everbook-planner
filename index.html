@@ -488,6 +488,7 @@
   </div>
   <div class="controls-group">
     <label class="checkbox-label"><input type="checkbox" id="gen-courses" checked> Courses</label>
+    <label class="checkbox-label"><input type="checkbox" id="gen-someday" checked> Someday</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-tasks" checked> Tasks</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-quintiles" checked> Quintiles</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-monthly" checked> Monthly</label>
@@ -733,8 +734,6 @@ function renderCourses() {
           </div>
           <div class="course-status"><span>&cir; up</span><span>&cir; now</span><span>&cir; done</span></div>
         </div>`;
-  const tankRows = Array.from({length: 24}, () =>
-    `<div class="tank-row"><span></span><span class="tank-wl">W &nbsp; L</span><span></span></div>`).join('');
 
   return `
   <div class="folio-sheet"><div class="fold-line"></div>
@@ -747,12 +746,30 @@ function renderCourses() {
       <div class="sub-code" style="padding-top:4px;">fill the circle as a course moves from up &rarr; now &rarr; done</div>
     </div>
     <div class="page">
+      <div class="header-row"><div><h1 class="serif-header">notes.</h1><div class="sub-code">courses</div></div><span class="tag-label">scratch</span></div>
+      <div class="border-box grid-bg" style="flex:1;"></div>
+    </div>
+  </div>`;
+}
+
+function renderSomeday() {
+  const tankRows = Array.from({length: 24}, () =>
+    `<div class="tank-row"><span></span><span class="tank-wl">W &nbsp; L</span><span></span></div>`).join('');
+
+  return `
+  <div class="folio-sheet"><div class="fold-line"></div>
+    <!-- SOMEDAY / MAYBE: loose-leaf -->
+    <div class="page">
       <div class="header-row"><div><h1 class="serif-header">someday / maybe.</h1><div class="sub-code">ideas, not yet committed</div></div><span class="tag-label">parked</span></div>
       <div class="border-box" style="flex:1; display:flex; flex-direction:column;">
         <div class="tank-head" style="background:#fff;"><span>item</span><span>w / l</span><span>status</span></div>
         ${tankRows}
       </div>
       <div class="sub-code" style="padding-top:4px;">&rarr; committed (unscheduled, a date, or C#) &nbsp;&nbsp; &times; dropped</div>
+    </div>
+    <div class="page">
+      <div class="header-row"><div><h1 class="serif-header">scratch.</h1><div class="sub-code">someday / maybe</div></div><span class="tag-label">loose</span></div>
+      <div class="border-box grid-bg" style="flex:1;"></div>
     </div>
   </div>`;
 }
@@ -901,9 +918,12 @@ function buildPlanner() {
 
   let htmlBuffer = '';
 
-  // 0. Courses + holding tank (single loose-leaf sheet)
+  // 0. Loose-leaf sheets: courses, someday / maybe, unscheduled
   if (document.getElementById('gen-courses').checked) {
     htmlBuffer += renderCourses();
+  }
+  if (document.getElementById('gen-someday').checked) {
+    htmlBuffer += renderSomeday();
   }
   if (document.getElementById('gen-tasks').checked) {
     htmlBuffer += renderTasks();
