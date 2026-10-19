@@ -308,6 +308,18 @@
     color: #4b5563;
     line-height: 1;
   }
+  .time-ladder .ladder-line.half { left: 0; }
+  .wk-label {
+    position: absolute;
+    left: 2px;
+    transform: translateY(-50%);
+    background: #fff;
+    padding: 0 1px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 4.5pt;
+    color: #4b5563;
+    line-height: 1;
+  }
   .shutdown-row {
     display: flex;
     justify-content: flex-end;
@@ -472,7 +484,7 @@
   </div>
   <div class="controls-group">
     <label>Work day: <select id="work-start"><option value="5">5a</option><option value="6">6a</option><option value="7" selected>7a</option><option value="8">8a</option><option value="9">9a</option><option value="10">10a</option><option value="11">11a</option><option value="12">12p</option><option value="13">1p</option></select></label>
-    <label>Personal day: <select id="personal-start"><option value="5">5a</option><option value="6">6a</option><option value="7">7a</option><option value="8">8a</option><option value="9">9a</option><option value="10">10a</option><option value="11">11a</option><option value="12">12p</option><option value="13" selected>1p</option></select></label>
+    <label>Personal day: <select id="personal-start"><option value="5">5a</option><option value="6">6a</option><option value="7" selected>7a</option><option value="8">8a</option><option value="9">9a</option><option value="10">10a</option><option value="11">11a</option><option value="12">12p</option><option value="13">1p</option></select></label>
   </div>
   <div class="controls-group">
     <label class="checkbox-label"><input type="checkbox" id="gen-courses" checked> Courses</label>
@@ -640,6 +652,20 @@ function renderMonthlyCal(year, monthIndex) {
   </div>`;
 }
 
+function renderWeekLadder(startHour) {
+  const sq = 3.7;
+  const step = sq * 2;  // weekly: 2 squares per hour (hour line + half-hour line)
+  let marks = '';
+  for (let i = 0; i <= LADDER_HOURS; i++) {
+    const y = sq + i * step;
+    marks += `<div class="ladder-line" style="top:${y.toFixed(1)}mm;"></div><span class="wk-label" style="top:${y.toFixed(1)}mm;">${hourLabel(startHour + i)}</span>`;
+    if (i < LADDER_HOURS) marks += `<div class="ladder-line half" style="top:${(y + step / 2).toFixed(1)}mm;"></div>`;
+  }
+  const todoTop = (sq + LADDER_HOURS * step + sq).toFixed(1);
+  marks += `<span class="mini" style="position:absolute; left:3px; top:${todoTop}mm;">to do</span>`;
+  return `<div class="time-ladder grid-bg">${marks}</div>`;
+}
+
 function renderWeeklySpread(monDate) {
   const days = [];
   for (let i = 0; i < 7; i++) {
@@ -649,7 +675,29 @@ function renderWeeklySpread(monDate) {
   }
   const weekNum = getWeekNumber(monDate);
   const monthName = MONTH_NAMES[monDate.getMonth()];
-  const year = monDate.getFullYear();
+  const workStart = parseInt(document.getElementById('work-start').value, 10);
+  const personalStart = parseInt(document.getElementById('personal-start').value, 10);
+
+  const columns = (startHour) => `
+      <div class="weekly-columns" style="flex:1;">
+        ${days.slice(0, 5).map(d => `
+          <div class="day-col">
+            <div class="day-head"><span class="d-num">${d.getDate()}</span> <span class="d-name">${DAY_CODES[d.getDay()]}</span></div>
+            ${renderWeekLadder(startHour)}
+          </div>
+        `).join('')}
+        <div class="day-col">
+          <div class="day-head"><span class="d-num">${days[5].getDate()}&ndash;${days[6].getDate()}</span> <span class="d-name">SS</span></div>
+          <div class="grid-bg" style="flex:1;"></div>
+        </div>
+      </div>`;
+
+  const floor = (title) => `
+      <div class="repeatables-floor grid-bg">
+        <div class="repeatables-header"><span>${title}</span><span>M T W T F S S</span></div>
+        <div class="repeatables-row"><span>&square;</span><span>&cir; &cir; &cir; &cir; &cir; &cir; &cir;</span></div>
+        <div class="repeatables-row"><span>&square;</span><span>&cir; &cir; &cir; &cir; &cir; &cir; &cir;</span></div>
+      </div>`;
 
   return `
   <div class="folio-sheet"><div class="fold-line"></div>
@@ -659,42 +707,17 @@ function renderWeeklySpread(monDate) {
         <div><h1 class="serif-header">${monthName}.</h1><div class="sub-code">wk ${weekNum} &bull; work</div></div>
         <span class="tag-label">schedule</span>
       </div>
-      <div class="weekly-columns grid-bg" style="flex:1;">
-        ${days.slice(0, 5).map(d => `
-          <div class="day-col">
-            <div class="day-head"><span class="d-num">${d.getDate()}</span> <span class="d-name">${DAY_CODES[d.getDay()]}</span></div>
-            <div class="time-ladder">
-              <span class="hour-mark" style="top: 8%;">7a</span>
-              <span class="hour-mark" style="top: 30%;">10a</span>
-              <span class="hour-mark" style="top: 52%;">1p</span>
-              <span class="hour-mark" style="top: 74%;">4p</span>
-              <span class="hour-mark" style="top: 92%;">7p</span>
-            </div>
-          </div>
-        `).join('')}
-        <div class="day-col">
-          <div class="day-head"><span class="d-num">${days[5].getDate()}&ndash;${days[6].getDate()}</span> <span class="d-name">SS</span></div>
-          <div style="flex:1;"></div>
-        </div>
-      </div>
-      <div class="repeatables-floor grid-bg">
-        <div class="repeatables-header"><span>WEEKLY REPEATABLES</span><span>M T W T F S S</span></div>
-        <div class="repeatables-row"><span>&square;</span><span>&cir; &cir; &cir; &cir; &cir; &cir; &cir;</span></div>
-        <div class="repeatables-row"><span>&square;</span><span>&cir; &cir; &cir; &cir; &cir; &cir; &cir;</span></div>
-      </div>
+      ${columns(workStart)}
+      ${floor('WEEKLY REPEATABLES')}
     </div>
     <!-- PERSONAL WEEK -->
     <div class="page">
       <div class="header-row">
         <div><h1 class="serif-header">living.</h1><div class="sub-code">wk ${weekNum} &bull; personal</div></div>
-        <span class="tag-label">dashboard</span>
+        <span class="tag-label">schedule</span>
       </div>
-      <div class="border-box grid-bg" style="flex:1;"></div>
-      <div class="repeatables-floor grid-bg">
-        <div class="repeatables-header"><span>HABITS &amp; ROUTINES</span><span>M T W T F S S</span></div>
-        <div class="repeatables-row"><span>&square;</span><span>&cir; &cir; &cir; &cir; &cir; &cir; &cir;</span></div>
-        <div class="repeatables-row"><span>&square;</span><span>&cir; &cir; &cir; &cir; &cir; &cir; &cir;</span></div>
-      </div>
+      ${columns(personalStart)}
+      ${floor('HABITS &amp; ROUTINES')}
     </div>
   </div>`;
 }
