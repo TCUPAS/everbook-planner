@@ -490,6 +490,8 @@
     <label class="checkbox-label"><input type="checkbox" id="gen-courses" checked> Courses</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-someday" checked> Someday</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-tasks" checked> Tasks</label>
+    <label class="checkbox-label"><input type="checkbox" id="gen-books" checked> Books</label>
+    <label class="checkbox-label"><input type="checkbox" id="gen-workouts" checked> Workouts</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-quintiles" checked> Quintiles</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-monthly" checked> Monthly</label>
     <label class="checkbox-label"><input type="checkbox" id="gen-weekly" checked> Weekly</label>
@@ -795,6 +797,66 @@ function renderTasks() {
   </div>`;
 }
 
+function renderBooks() {
+  const cols = 'grid-template-columns: 0.3in 1fr 0.55in 1.5in;';
+  const rows = Array.from({length: 24}, () =>
+    `<div class="tank-row" style="${cols}"><span></span><span></span><span></span><span></span></div>`).join('');
+  return `
+  <div class="folio-sheet"><div class="fold-line"></div>
+    <!-- BOOKS: loose-leaf reading log -->
+    <div class="page">
+      <div class="header-row"><div><h1 class="serif-header">books.</h1><div class="sub-code">reading log</div></div><span class="tag-label">finished</span></div>
+      <div class="border-box" style="flex:1; display:flex; flex-direction:column;">
+        <div class="tank-head" style="${cols} background:#fff;"><span>#</span><span>title / author</span><span>finished</span><span>thoughts</span></div>
+        ${rows}
+      </div>
+      <div class="sub-code" style="padding-top:4px;"># = running count for the year</div>
+    </div>
+    <div class="page">
+      <div class="header-row"><div><h1 class="serif-header">notes.</h1><div class="sub-code">books</div></div><span class="tag-label">quotes &amp; takeaways</span></div>
+      <div class="border-box grid-bg" style="flex:1;"></div>
+    </div>
+  </div>`;
+}
+
+function renderWorkouts() {
+  const dayStrip = `<span style="font-family:'IBM Plex Mono', monospace; font-size:6.5pt; letter-spacing:0.12em; color:#6b7280;">M T W T F S S</span>`;
+  const session = () => `
+          <div class="border-box" style="flex:1; display:flex; flex-direction:column;">
+            <div style="display:grid; grid-template-columns:0.7in 1.2in 1fr; align-items:center; border-bottom:0.5pt solid #4b5563; background:#fff; padding:2px 0;">
+              <span class="mini" style="padding-left:4px;">date</span>
+              ${dayStrip}
+              <span class="mini" style="border-left:0.5pt solid #e5e7eb; padding-left:4px;">workout</span>
+            </div>
+            <div class="grid-bg" style="flex:1; display:grid; grid-template-columns:42% 1fr;">
+              <span class="mini" style="padding:2px 4px; border-right:0.5pt solid #9ca3af;">exercise</span>
+              <span class="mini" style="padding:2px 4px;">sets &times; reps @ weight</span>
+            </div>
+          </div>`;
+  const section = (name) => `
+        <div style="flex:1; display:flex; flex-direction:column; gap:3px;">
+          <div class="sub-code" style="color:#111827; font-weight:500;">${name}</div>
+          ${session()}
+          ${session()}
+        </div>`;
+  return `
+  <div class="folio-sheet"><div class="fold-line"></div>
+    <!-- WORKOUTS: push / legs / pull, two sessions each = two weeks -->
+    <div class="page">
+      <div class="header-row"><div><h1 class="serif-header">training.</h1><div class="sub-code">workout log &bull; two weeks</div></div><span class="tag-label">push / legs / pull</span></div>
+      <div style="flex:1; display:flex; flex-direction:column; gap:7px;">
+        ${section('push')}
+        ${section('legs')}
+        ${section('pull')}
+      </div>
+    </div>
+    <div class="page">
+      <div class="header-row"><div><h1 class="serif-header">notes.</h1><div class="sub-code">training</div></div><span class="tag-label">lifts &amp; progress</span></div>
+      <div class="border-box grid-bg" style="flex:1;"></div>
+    </div>
+  </div>`;
+}
+
 function renderWeeklyPlan(monDate) {
   const weekNum = getWeekNumber(monDate);
   const days = Array.from({length: 7}, (_, i) => {
@@ -927,6 +989,12 @@ function buildPlanner() {
   }
   if (document.getElementById('gen-tasks').checked) {
     htmlBuffer += renderTasks();
+  }
+  if (document.getElementById('gen-books').checked) {
+    htmlBuffer += renderBooks();
+  }
+  if (document.getElementById('gen-workouts').checked) {
+    htmlBuffer += renderWorkouts();
   }
 
   // 1. Quintiles
