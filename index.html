@@ -473,6 +473,27 @@
     font-size: 5pt;
     color: #9ca3af;
   }
+
+  /* Booklet covers (printed on the back of each sheet) */
+  .cover-panel {
+    justify-content: flex-start;
+    padding: 1.6in 0.6in 0.6in 0.6in;
+  }
+  .cover-kicker { letter-spacing: 0.22em; }
+  .cover-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 34pt;
+    font-weight: 500;
+    line-height: 1.05;
+    color: #111827;
+    margin: 10px 0 14px 0;
+  }
+  .cover-rule {
+    width: 1.2in;
+    border-top: 0.75pt solid #4b5563;
+    margin-bottom: 10px;
+  }
+  .cover-sub { font-size: 7pt; }
 </style>
 </head>
 <body>
@@ -485,6 +506,10 @@
   <div class="controls-group">
     <label>Work day: <select id="work-start"><option value="5">5a</option><option value="6">6a</option><option value="7" selected>7a</option><option value="8">8a</option><option value="9">9a</option><option value="10">10a</option><option value="11">11a</option><option value="12">12p</option><option value="13">1p</option></select></label>
     <label>Personal day: <select id="personal-start"><option value="5">5a</option><option value="6">6a</option><option value="7" selected>7a</option><option value="8">8a</option><option value="9">9a</option><option value="10">10a</option><option value="11">11a</option><option value="12">12p</option><option value="13">1p</option></select></label>
+  </div>
+  <div class="controls-group">
+    <label class="checkbox-label"><input type="checkbox" id="gen-covers" checked> Covers</label>
+    <label>Cover side: <select id="cover-side"><option value="left" selected>left</option><option value="right">right</option></select></label>
   </div>
   <div class="controls-group">
     <label class="checkbox-label"><input type="checkbox" id="gen-courses" checked> Courses</label>
@@ -510,6 +535,43 @@
 const MONTH_NAMES = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
 const DAY_CODES = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
 
+const DAY_FULL = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+// Each sheet carries its cover text; covers are added after generation when "Covers" is on.
+function sheetOpen(kicker, title, sub) {
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  return `<div class="folio-sheet" data-kicker="${esc(kicker)}" data-title="${esc(title)}" data-sub="${esc(sub)}"><div class="fold-line"></div>`;
+}
+
+function weekRange(monDate) {
+  const end = new Date(monDate);
+  end.setDate(monDate.getDate() + 6);
+  const a = `${MONTH_NAMES[monDate.getMonth()]} ${monDate.getDate()}`;
+  const b = end.getMonth() === monDate.getMonth() ? `${end.getDate()}` : `${MONTH_NAMES[end.getMonth()]} ${end.getDate()}`;
+  return `${a} \u2013 ${b}`;
+}
+
+function addCovers(mount, side) {
+  [...mount.querySelectorAll('.folio-sheet[data-title]')].forEach(sheet => {
+    const back = document.createElement('div');
+    back.className = 'folio-sheet cover-sheet';
+    const panel = (isCover) => {
+      const pg = document.createElement('div');
+      pg.className = 'page cover-panel';
+      if (isCover) {
+        pg.innerHTML = '<div class="sub-code cover-kicker"></div><h1 class="cover-title"></h1><div class="cover-rule"></div><div class="sub-code cover-sub"></div>';
+        pg.querySelector('.cover-kicker').textContent = sheet.dataset.kicker;
+        pg.querySelector('.cover-title').textContent = sheet.dataset.title;
+        pg.querySelector('.cover-sub').textContent = sheet.dataset.sub;
+      }
+      return pg;
+    };
+    back.appendChild(panel(side === 'left'));
+    back.appendChild(panel(side === 'right'));
+    sheet.after(back);
+  });
+}
+
 function formatDateISO(d) {
   return d.toISOString().split('T')[0];
 }
@@ -529,7 +591,7 @@ function getWeekNumber(d) {
 function renderQuintiles(targetYear) {
   return `
   <!-- QUINTILE 1: WINTER -->
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('quintile i', 'winter.', `jan / feb / mar ${targetYear}`)}
     <div class="page"><div class="header-row"><div><h1 class="serif-header">winter.</h1><div class="sub-code">quintile i &bull; jan / feb / mar ${targetYear}</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">winter.</h1><div class="sub-code">monthly divisions</div></div><span class="tag-label">${targetYear}</span></div>
       <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
@@ -540,7 +602,7 @@ function renderQuintiles(targetYear) {
     </div>
   </div>
   <!-- QUINTILE 2: SPRING -->
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('quintile ii', 'spring.', `apr / may ${targetYear}`)}
     <div class="page"><div class="header-row"><div><h1 class="serif-header">spring.</h1><div class="sub-code">quintile ii &bull; apr / may ${targetYear}</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">spring.</h1><div class="sub-code">monthly divisions</div></div><span class="tag-label">${targetYear}</span></div>
       <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
@@ -550,7 +612,7 @@ function renderQuintiles(targetYear) {
     </div>
   </div>
   <!-- QUINTILE 3: SUMMER -->
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('quintile iii', 'summer.', `jun / jul / aug ${targetYear}`)}
     <div class="page"><div class="header-row"><div><h1 class="serif-header">summer.</h1><div class="sub-code">quintile iii &bull; jun / jul / aug ${targetYear}</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">summer.</h1><div class="sub-code">monthly divisions</div></div><span class="tag-label">${targetYear}</span></div>
       <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
@@ -561,7 +623,7 @@ function renderQuintiles(targetYear) {
     </div>
   </div>
   <!-- QUINTILE 4: FALL -->
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('quintile iv', 'fall.', `sep / oct ${targetYear}`)}
     <div class="page"><div class="header-row"><div><h1 class="serif-header">fall.</h1><div class="sub-code">quintile iv &bull; sep / oct ${targetYear}</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">fall.</h1><div class="sub-code">monthly divisions</div></div><span class="tag-label">${targetYear}</span></div>
       <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
@@ -571,7 +633,7 @@ function renderQuintiles(targetYear) {
     </div>
   </div>
   <!-- QUINTILE 5: HOLIDAY SEASON -->
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('quintile v', 'holiday season.', `nov / dec ${targetYear}`)}
     <div class="page"><div class="header-row"><div><h1 class="serif-header">holiday season.</h1><div class="sub-code">quintile v &bull; nov / dec ${targetYear}</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">holiday season.</h1><div class="sub-code">monthly divisions</div></div><span class="tag-label">${targetYear}</span></div>
       <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
@@ -581,7 +643,7 @@ function renderQuintiles(targetYear) {
     </div>
   </div>
   <!-- NEXT-YEAR+ HORIZON -->
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('long range', `${targetYear + 1}+.`, 'horizon')}
     <div class="page"><div class="header-row"><div><h1 class="serif-header">${targetYear + 1}+.</h1><div class="sub-code">long-range horizon</div></div><span class="tag-label">forward log</span></div><div class="border-box grid-bg" style="flex:1;"></div></div>
     <div class="page"><div class="header-row"><div><h1 class="serif-header">${targetYear + 1}+.</h1><div class="sub-code">forward park</div></div><span class="tag-label">${targetYear + 1}</span></div>
       <div style="flex:1; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:6px;">
@@ -623,7 +685,7 @@ function renderMonthlyCal(year, monthIndex) {
 
   // Standard Monthly Spread: Work Left, Personal Right
   return `
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('monthly', `${monthName}.`, `${year}`)}
     <div class="page">
       <div class="header-row"><div><h1 class="serif-header">${monthName}.</h1><div class="sub-code">${year} &bull; work monthly</div></div><span class="tag-label">calendar</span></div>
       <div style="flex:1;">${tableHTML}</div>
@@ -634,7 +696,7 @@ function renderMonthlyCal(year, monthIndex) {
     </div>
   </div>
   <!-- Vertical Log 1-31 Spread -->
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('monthly log', `${monthName}.`, `${year} \u2022 dated log & notes`)}
     <div class="page">
       <div class="header-row"><div><h1 class="serif-header">${monthName}.</h1><div class="sub-code">${year} &bull; monthly log</div></div><span class="tag-label">dated log</span></div>
       <div class="border-box grid-bg" style="flex:1; display:flex; flex-direction:column; padding:2px;">
@@ -703,7 +765,7 @@ function renderWeeklySpread(monDate) {
       </div>`;
 
   return `
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen(`week ${weekNum}`, weekRange(monDate), 'work & living schedule')}
     <!-- WORK WEEK -->
     <div class="page">
       <div class="header-row">
@@ -738,7 +800,7 @@ function renderCourses() {
         </div>`;
 
   return `
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('log', 'courses.', 'current & upcoming')}
     <!-- COURSES: one loose-leaf sheet you move forward -->
     <div class="page">
       <div class="header-row"><div><h1 class="serif-header">courses.</h1><div class="sub-code">current &amp; upcoming</div></div><span class="tag-label">move forward</span></div>
@@ -759,7 +821,7 @@ function renderSomeday() {
     `<div class="tank-row"><span></span><span class="tank-wl">W &nbsp; L</span><span></span></div>`).join('');
 
   return `
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('log', 'someday / maybe.', 'ideas, not yet committed')}
     <!-- SOMEDAY / MAYBE: loose-leaf -->
     <div class="page">
       <div class="header-row"><div><h1 class="serif-header">someday / maybe.</h1><div class="sub-code">ideas, not yet committed</div></div><span class="tag-label">parked</span></div>
@@ -790,7 +852,7 @@ function renderTasks() {
       <div class="sub-code" style="padding-top:4px;">&rarr; day / wk / month / season &nbsp;&nbsp; &check; done &nbsp;&nbsp; &times; dropped</div>
     </div>`;
   return `
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('log', 'unscheduled.', 'work & living tasks')}
     <!-- UNSCHEDULED TASKS: everything without a time bucket yet -->
     ${page('unscheduled.', 'work &bull; committed, no date yet')}
     ${page('unscheduled.', 'living &bull; committed, no date yet')}
@@ -802,7 +864,7 @@ function renderBooks() {
   const rows = Array.from({length: 24}, () =>
     `<div class="tank-row" style="${cols}"><span></span><span></span><span></span><span></span></div>`).join('');
   return `
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('log', 'books.', 'reading log')}
     <!-- BOOKS: loose-leaf reading log -->
     <div class="page">
       <div class="header-row"><div><h1 class="serif-header">books.</h1><div class="sub-code">reading log</div></div><span class="tag-label">finished</span></div>
@@ -840,7 +902,7 @@ function renderWorkouts() {
           ${session()}
         </div>`;
   return `
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('log', 'training.', 'push / legs / pull')}
     <!-- WORKOUTS: push / legs / pull, two sessions each = two weeks -->
     <div class="page">
       <div class="header-row"><div><h1 class="serif-header">training.</h1><div class="sub-code">workout log &bull; two weeks</div></div><span class="tag-label">push / legs / pull</span></div>
@@ -870,7 +932,7 @@ function renderWeeklyPlan(monDate) {
   const rockRows = Array.from({length: 3}, () => `<div class="rule-row"><span class="id-slot">C#</span></div>`).join('');
 
   return `
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen(`week ${weekNum} plan`, weekRange(monDate), 'priorities & day by day')}
     <!-- WEEKLY PLAN: PRIORITIES -->
     <div class="page">
       <div class="header-row"><div><h1 class="serif-header">plan.</h1><div class="sub-code">wk ${weekNum} &bull; ${range}</div></div><span class="tag-label">weekly plan</span></div>
@@ -943,7 +1005,7 @@ function renderDailySpread(dateObj) {
   const personalStart = parseInt(document.getElementById('personal-start').value, 10);
 
   return `
-  <div class="folio-sheet"><div class="fold-line"></div>
+  ${sheetOpen('daily', `${DAY_FULL[dateObj.getDay()]}, ${monthName} ${dayNum}`, `${year}`)}
     <!-- DAILY WORK -->
     <div class="page">
       <div class="header-row">
@@ -1033,6 +1095,9 @@ function buildPlanner() {
   }
 
   mount.innerHTML = htmlBuffer;
+  if (document.getElementById('gen-covers').checked) {
+    addCovers(mount, document.getElementById('cover-side').value);
+  }
 }
 
 window.onload = buildPlanner;
